@@ -32,11 +32,10 @@ test2 = []
 async def IMU_READ():
     global test2
     try:
-	    while 1:
-		    data = bluetoothSerial.readline()
+        while 1:
+            data = bluetoothSerial.readline()
             if len(test2)>5:
                 test2.pop(0)
- 
             test2.append({str(datetime.now()),data})  
     except:
         print("did not connect")
