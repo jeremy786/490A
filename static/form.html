@@ -6,8 +6,9 @@
     </head>
     <body>
         <form method="post" action="" novalidate>
-            <label>Enter: <input type="text" name="test"></label>
-            <input type="submit">
+            <label>Enter Text <input type="text" name="text"></label>
+            <label>Enter time in seconds <input type="number" name="time" step="0.001" min="0" max="20"></label>
+	    <input type="submit">
         </form>
 
         <button id="but">AJAX</button>
