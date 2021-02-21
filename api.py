@@ -1,6 +1,8 @@
 import flask
 import sys
 import time
+import datetime
+import serial
 import RPi.GPIO as GPIO
 from flask import request, jsonify,send_from_directory, redirect, url_for
 from flask import make_response
@@ -8,6 +10,9 @@ from flask import make_response
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(24, GPIO.OUT)
 GPIO.output(24, 1)
+
+bluetoothSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
+print("Bluetooth connected")
 
 test = [{
     "key":"val",
@@ -21,6 +26,21 @@ test = [{
     "key6":"val6"
 },
 ]
+
+test2 = []
+
+async def IMU_READ():
+    global test2
+    try:
+	    while 1:
+		    data = bluetoothSerial.readline()
+            if len(test2)>5:
+                test2.pop(0)
+ 
+            test2.append({str(datetime.now()),data})  
+    except:
+        print("did not connect")
+
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] =  True
