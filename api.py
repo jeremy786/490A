@@ -2,8 +2,9 @@ import flask
 import sys
 import time
 import datetime
-import serial
 import asyncio
+import serial
+import io
 from datetime import date, datetime
 # import RPi.GPIO as GPIO
 from flask import request, jsonify,send_from_directory, redirect, url_for
@@ -29,16 +30,20 @@ test = [{
 imuData = []
 scaleData = []
 
-async def IMU_READ():
+def IMU_READ():
     bluetoothSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
+    #sio = io.TextIOWrapper(io.BufferedRWPair(bluetoothSerial,bluetoothSerial))
     print("Bluetooth connected",flush=True)
     global imuData
+    imuData = []
     try:
-        while 1:
+        while len(imuData) < 5:
+            #sio.flush()
+            #data = sio.readline()
             data = bluetoothSerial.readline()
-            if len(imuData)>5:
-                imuData.pop(0)
-            imuData.append({str(datetime.now()),data})  
+            print(data,flush=True)
+            now = datetime.now()
+            imuData.append({now.strftime("%H:%M:%S"):data})
     except:
         print("did not connect",flush=True)
     # await asyncio.sleep(10)
@@ -47,17 +52,17 @@ async def IMU_READ():
     #     print({now.strftime("%H:%M:%S"):x})
     #     imuData.append({now.strftime("%H:%M:%S"):x})
 
-async def SCALE_READ():
+def SCALE_READ():
     bluetoothSerial = serial.Serial("/dev/rfcomm2",baudrate=9600)
     print("Bluetooth connected",flush=True)
     global scaleData
     scaleData = []
     try:
-        while 1:
+        while len(scaleData) < 5:
             data = bluetoothSerial.readline()
-            if len(scaleData)>5:
-                scaleData.pop(0)
-            scaleData.append({str(datetime.now()),data})  
+            print(data,flush=True)
+            now = datetime.now()
+            scaleData.append({now.strftime("%H:%M:%S"):data})
     except:
         print("did not connect",flush=True)
     # await asyncio.sleep(10)
@@ -78,12 +83,12 @@ def home():
 
 @app.route("/api/v1/imu",methods=["GET"])
 def imu():
-        asyncio.run(IMU_READ())
+        IMU_READ()
         return jsonify(imuData)
 
 @app.route("/api/v1/scale",methods=["GET"])
 def scale():
-        asyncio.run(SCALE_READ())
+        SCALE_READ()
         return jsonify(scaleData)
 
 @app.route("/api/v1/test",methods=["GET"])
