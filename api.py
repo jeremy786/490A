@@ -1,3 +1,4 @@
+from asyncio.tasks import sleep
 import flask
 import sys
 import time
@@ -29,6 +30,22 @@ test = [{
 
 imuData = []
 scaleData = []
+watchData = []
+global watchSerial,scaleSerial,IMUSerial
+
+async def scaleTestRead():
+    
+    global scaleData, scaleSerial
+    while True:
+        asyncio.sleep(1)
+        print("Polling scale starting",flush=True)
+        for x in range(10):
+            if(len(scaleData) > 10):
+                scaleData.pop()
+            scaleData.push(scaleSerial.readline())
+        print("polling finished\nData:",flush=True)
+        for x in range(10):
+            print(scaleData[x],flush=True)
 
 def IMU_READ():
     bluetoothSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
@@ -72,13 +89,42 @@ def SCALE_READ():
     #     scaleData.append({now.strftime("%H:%M:%S"):x})
 
 
+def WATCH_READ():
+    bluetoothSerial = serial.Serial("/dev/rfcomm3",baudrate=9600)
+    print("Watch connected",flush=True)
+    global scaleData
+    scaleData = []
+    try:
+        while len(scaleData) < 5:
+            data = bluetoothSerial.readline()
+            print(data,flush=True)
+            now = datetime.now()
+            scaleData.append({now.strftime("%H:%M:%S"):"Time"})
+    except:
+        print("did not connect",flush=True)
+
+#BLUETOOTH SETUP START
+############
+##########
+def bluetoothSetup():
+    global watchSerial,scaleSerial,IMUSerial
+    watchSerial = serial.Serial("/dev/rfcomm3",baudrate=9600)
+    print("Watch connected",flush=True)
+    scaleSerial = serial.Serial("/dev/rfcomm2",baudrate=9600)
+    print("Bluetooth SCALE connected",flush=True)
+    IMUSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
+    print("Bluetooth IMU connected",flush=True)
+
+
+#SERVER SETUP
+#########
+#########
 app = flask.Flask(__name__)
 app.config["DEBUG"] =  True
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 @app.route("/",methods=["GET"])
 def home():
     return "<h1>Welcome</h1>"
-
 
 
 @app.route("/api/v1/imu",methods=["GET"])
@@ -120,3 +166,5 @@ def kinect():
 def page_not_found(e):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 app.run(host="0.0.0.0",port=8080)
+bluetoothSetup()
+asyncio.run(scaleTestRead())
