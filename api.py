@@ -33,7 +33,7 @@ scaleData = []
 def IMU_READ():
     bluetoothSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
     #sio = io.TextIOWrapper(io.BufferedRWPair(bluetoothSerial,bluetoothSerial))
-    print("Bluetooth connected",flush=True)
+    print("Bluetooth IMU connected",flush=True)
     global imuData
     imuData = []
     try:
@@ -43,7 +43,7 @@ def IMU_READ():
             data = bluetoothSerial.readline()
             print(data,flush=True)
             now = datetime.now()
-            imuData.append({now.strftime("%H:%M:%S"):data})
+            imuData.append({now.strftime("%H:%M:%S"):"Time"})
     except:
         print("did not connect",flush=True)
     # await asyncio.sleep(10)
@@ -54,7 +54,7 @@ def IMU_READ():
 
 def SCALE_READ():
     bluetoothSerial = serial.Serial("/dev/rfcomm2",baudrate=9600)
-    print("Bluetooth connected",flush=True)
+    print("Bluetooth SCALE connected",flush=True)
     global scaleData
     scaleData = []
     try:
@@ -62,7 +62,7 @@ def SCALE_READ():
             data = bluetoothSerial.readline()
             print(data,flush=True)
             now = datetime.now()
-            scaleData.append({now.strftime("%H:%M:%S"):data})
+            scaleData.append({now.strftime("%H:%M:%S"):"Time"})
     except:
         print("did not connect",flush=True)
     # await asyncio.sleep(10)
