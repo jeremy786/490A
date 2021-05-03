@@ -35,33 +35,33 @@ kinectData = []
 global watchSerial,scaleSerial,IMUSerial
 
 def watchTestRead():
-    while True:
-        watchData = []
-        print("Polling watch starting",flush=True)
-        for x in range(10):
-            if(len(watchData) > 10):
-                watchData.pop()
-            watchData.append(watchSerial.readline())
-        print("polling finished\nData:",flush=True)
-        for x in range(10):
-            print(watchData[x],flush=True)
+    #bluetoothSerial = serial.Serial("/dev/rfcomm3",baudrate=9600)
+    global watchData
+    watchData = []
+    print("Polling watch starting",flush=True)
+    try:
+        print("test1")
+        while len(watchData) < 5:
+            print("test2")
+            data = watchSerial.readline()
+            print(data,flush=True)
+    except:
+        print("did not work")
 
 def IMU_READ():
-    bluetoothSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
-    #sio = io.TextIOWrapper(io.BufferedRWPair(bluetoothSerial,bluetoothSerial))
-    print("Bluetooth IMU connected",flush=True)
+    #bluetoothSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
+    #print("Bluetooth IMU connected",flush=True)
     global imuData
     imuData = []
     try:
         while len(imuData) < 5:
-            #sio.flush()
-            #data = sio.readline()
-            data = bluetoothSerial.readline()
+            data = imuSerial.readline()
             print(data,flush=True)
-            now = datetime.now()
-            imuData.append({now.strftime("%H:%M:%S"):"Time"})
-    except:
-        print("did not connect",flush=True)
+            imuData.append({"line":data.decode("utf-8")})
+            if len(imuData) > 5:
+               imuData.pop()
+   # except:
+       # print("did not connect",flush=True)
     # await asyncio.sleep(10)
     # for x in range(5):
     #     now = datetime.now()
@@ -75,10 +75,13 @@ def SCALE_READ():
     scaleData = []
     try:
         while len(scaleData) < 5:
-            data = bluetoothSerial.readline()
+            print("test")
+            data = blueToothSerial.readline()
             print(data,flush=True)
-            now = datetime.now()
-            scaleData.append({now.strftime("%H:%M:%S"):"Time"})
+            #scaleData.append({"line":data.decode("utf-8")})
+            if len(scaleData) > 5:
+                scaleData.pop()
+            #scaleData.append({"Time":now.strftime("%H:%M:%S"),"weight":data})
     except:
         print("did not connect",flush=True)
     # await asyncio.sleep(10)
@@ -86,22 +89,20 @@ def SCALE_READ():
     #     now = datetime.now()
     #     print({now.strftime("%H:%M:%S"):x})
     #     scaleData.append({now.strftime("%H:%M:%S"):x})
-
-
 def WATCH_READ():
-    bluetoothSerial = serial.Serial("/dev/rfcomm3",baudrate=9600)
+    #bluetoothSerial = serial.Serial("/dev/rfcomm3",baudrate=9600)
     print("Watch connected",flush=True)
-    global scaleData
-    scaleData = []
+    global watchData
+    watchData = []
     try:
-        while len(scaleData) < 5:
-            data = bluetoothSerial.readline()
+        while len(watchData) < 5:
+            data = watchSerial.readline()
             print(data,flush=True)
-            now = datetime.now()
-            scaleData.append({now.strftime("%H:%M:%S"):"Time"})
+            watchData.append({"line":data.encode("utf-8")})
+            if len(watchData) > 5:
+               watchData.pop()
     except:
         print("did not connect",flush=True)
-
 #BLUETOOTH SETUP START
 ############
 ##########
@@ -111,7 +112,7 @@ def bluetoothSetup():
     print("Watch connected",flush=True)
     scaleSerial = serial.Serial("/dev/rfcomm2",baudrate=9600)
     print("Bluetooth SCALE connected",flush=True)
-    #IMUSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
+    IMUSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
     print("Bluetooth IMU connected",flush=True)
 
 
@@ -119,7 +120,7 @@ def bluetoothSetup():
 #########
 #########
 app = flask.Flask(__name__)
-app.config["DEBUG"] =  True
+app.config["DEBUG"] =  False
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 @app.route("/",methods=["GET"])
 def home():
@@ -135,6 +136,11 @@ def imu():
 def scale():
         SCALE_READ()
         return jsonify(scaleData)
+
+@app.route("/api/v1/watch",methods=["GET"])
+def watch():
+        WATCH_READ()
+        return jsonify(watchData)
 
 @app.route("/api/v1/test",methods=["GET"])
 def api_test():
@@ -154,7 +160,7 @@ def form_test():
 
 @app.route('/app/v1/trackingData', methods=["GET"])
 def tracking_data():
-    return make_response(jsonify(kinectData.pop(-1),200)
+    return make_response(kinectData[-1],200)
 
 @app.route("/kinect",methods=["POST"])
 def kinect():
@@ -168,6 +174,8 @@ def kinect():
 @app.errorhandler(404)
 def page_not_found(e):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
-app.run(host="0.0.0.0",port=8080)
+
 #bluetoothSetup()
+#app.run(host="0.0.0.0",port=8080)
 #watchTestRead()
+SCALE_READ()
