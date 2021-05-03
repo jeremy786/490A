@@ -33,19 +33,17 @@ scaleData = []
 watchData = []
 global watchSerial,scaleSerial,IMUSerial
 
-async def scaleTestRead():
-    
-    global scaleData, scaleSerial
+def watchTestRead():
     while True:
-        asyncio.sleep(1)
-        print("Polling scale starting",flush=True)
+        watchData = []
+        print("Polling watch starting",flush=True)
         for x in range(10):
-            if(len(scaleData) > 10):
-                scaleData.pop()
-            scaleData.push(scaleSerial.readline())
+            if(len(watchData) > 10):
+                watchData.pop()
+            watchData.append(watchSerial.readline())
         print("polling finished\nData:",flush=True)
         for x in range(10):
-            print(scaleData[x],flush=True)
+            print(watchData[x],flush=True)
 
 def IMU_READ():
     bluetoothSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
@@ -112,7 +110,7 @@ def bluetoothSetup():
     print("Watch connected",flush=True)
     scaleSerial = serial.Serial("/dev/rfcomm2",baudrate=9600)
     print("Bluetooth SCALE connected",flush=True)
-    IMUSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
+    #IMUSerial = serial.Serial("/dev/rfcomm0",baudrate=9600)
     print("Bluetooth IMU connected",flush=True)
 
 
@@ -165,6 +163,6 @@ def kinect():
 @app.errorhandler(404)
 def page_not_found(e):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
-app.run(host="0.0.0.0",port=8080)
+#app.run(host="0.0.0.0",port=8080)
 bluetoothSetup()
-asyncio.run(scaleTestRead())
+watchTestRead()
