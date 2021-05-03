@@ -60,14 +60,13 @@ def IMU_READ():
             imuData.append({"line":data.decode("utf-8")})
             if len(imuData) > 5:
                imuData.pop()
-   # except:
-       # print("did not connect",flush=True)
+    except:
+        print("did not connect",flush=True)
     # await asyncio.sleep(10)
     # for x in range(5):
     #     now = datetime.now()
     #     print({now.strftime("%H:%M:%S"):x})
     #     imuData.append({now.strftime("%H:%M:%S"):x})
-
 def SCALE_READ():
     bluetoothSerial = serial.Serial("/dev/rfcomm2",baudrate=9600)
     print("Bluetooth SCALE connected",flush=True)
